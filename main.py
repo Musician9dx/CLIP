@@ -100,7 +100,7 @@ class Encoder(Layer):
         )
 
         patches = tf.reshape(patches, (1, 5, 500))
-        patches=patches+self.pEmbedding
+        patches=patches+self.pEmbedding(patches)
         logits = self.mha(patches)
 
         for layer in self.self_attention:
@@ -127,7 +127,7 @@ class Decoder(Layer):
 
     def call(self, tokens):
         embedding = self.embedding(tokens)
-        embedding=embedding+self.pEmbedding
+        embedding=embedding+self.pEmbedding(patches)
         logits = self.mha(embedding)
         logits = self.self_attention(logits)
         logits = tf.matmul(logits, self.maskMatrix)
