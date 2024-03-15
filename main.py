@@ -72,6 +72,7 @@ class Encoder(Layer):
         self.d1 = Dense(100, activation="linear")
         self.mha = MultiHeadAttention(10, 100)
         self.ad = Add()
+        self.pEmbedding=PositionEmbedding(vocabSize,embedSize)
 
     def build(self):
         self.self_attention = [SelfAttention(self.embedSize) for i in range(5)]
@@ -99,6 +100,7 @@ class Encoder(Layer):
         )
 
         patches = tf.reshape(patches, (1, 5, 500))
+        patches=patches+self.pEmbedding
         logits = self.mha(patches)
 
         for layer in self.self_attention:
@@ -121,9 +123,11 @@ class Decoder(Layer):
         self.mha = MultiHeadAttention(4, 100)
         self.maskMatrix = tf.ones((self.embedSize, self.embedSize))
         self.maskMatrix = tf.linalg.band_part(self.maskMatrix, -1, 0)
+        self.pEmbedding=PositionEmbedding(vocabSize,embedSize)
 
     def call(self, tokens):
         embedding = self.embedding(tokens)
+        embedding=embedding+self.pEmbedding
         logits = self.mha(embedding)
         logits = self.self_attention(logits)
         logits = tf.matmul(logits, self.maskMatrix)
